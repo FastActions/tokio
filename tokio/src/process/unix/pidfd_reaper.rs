@@ -245,9 +245,11 @@ mod test {
         assert!(status.success());
         let stdout = String::from_utf8_lossy(&stdout);
 
-        let mut kernel_version_iter = stdout.split_once('-').unwrap().0.split('.');
-        let major: u32 = kernel_version_iter.next().unwrap().parse().unwrap();
-        let minor: u32 = kernel_version_iter.next().unwrap().parse().unwrap();
+	let (version, _) = stdout.split_once('-').unwrap_or((&stdout, ""));
+    	let mut kernel_version_iter = version.split('.');
+
+    	let major: u32 = kernel_version_iter.next().unwrap().parse().unwrap();
+	let minor: u32 = kernel_version_iter.next().unwrap().parse().unwrap();
 
         major >= 6 || (major == 5 && minor >= 10)
     }
