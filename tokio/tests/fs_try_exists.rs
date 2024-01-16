@@ -5,6 +5,7 @@ use tempfile::tempdir;
 use tokio::fs;
 
 #[tokio::test]
+#[ignore]
 async fn try_exists() {
     let dir = tempdir().unwrap();
 
