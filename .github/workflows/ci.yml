@@ -13,18 +13,9 @@ concurrency:
 env:
   RUSTFLAGS: -Dwarnings
   RUST_BACKTRACE: 1
-  # Change to specific Rust release to pin
   rust_stable: stable
   rust_nightly: nightly-2023-10-21
   rust_clippy: '1.75'
-  # When updating this, also update:
-  # - README.md
-  # - tokio/README.md
-  # - CONTRIBUTING.md
-  # - tokio/Cargo.toml
-  # - tokio-util/Cargo.toml
-  # - tokio-test/Cargo.toml
-  # - tokio-stream/Cargo.toml
   rust_min: '1.63'
 
 defaults:
@@ -35,7 +26,6 @@ permissions:
   contents: read
 
 jobs:
-  # Depends on all actions that are required for a "successful" CI run.
   tests-pass:
     name: all systems go
     runs-on: blacksmith-4vcpu-ubuntu-2204
@@ -73,7 +63,6 @@ jobs:
     steps:
       - run: exit 0
 
-  # Basic actions that must pass before we kick off more expensive tests.
   basics:
     name: basic checks
     runs-on: blacksmith-4vcpu-ubuntu-2204
@@ -108,8 +97,6 @@ jobs:
 
       - uses: useblacksmith/cache@v5
 
-      # Run `tokio` with `full` features. This excludes testing utilities which
-      # can alter the runtime behavior of Tokio.
       - name: test tokio full
         run: |
           set -euxo pipefail
@@ -140,7 +127,6 @@ jobs:
 
       - uses: useblacksmith/cache@v5
 
-      # Test **all** crates in the workspace with all features.
       - name: test all --all-features
         run: |
           set -euxo pipefail
@@ -174,7 +160,7 @@ jobs:
         run: |
           set -euxo pipefail
           RUSTFLAGS="$RUSTFLAGS -C panic=abort -Zpanic-abort-tests" cargo nextest run --workspace --exclude tokio-macros --exclude tests-build --all-features --tests
-
+  
   test-integration-tests-per-feature:
     needs: basics
     name: Run integration tests for each feature
@@ -198,31 +184,20 @@ jobs:
 
       - uses: useblacksmith/cache@v5
 
-      # Run integration tests for each feature
       - name: test tests-integration --each-feature
         run: cargo hack test --each-feature
         working-directory: tests-integration
 
-      # Run macro build tests
       - name: test tests-build --each-feature
         run: cargo hack test --each-feature
         working-directory: tests-build
 
-      # Check benchmarks. Run of benchmarks is done by bench.yml workflow.
       - name: Check benches
         run: cargo check --benches
         working-directory: benches
-        # bench.yml workflow runs benchmarks only on linux.
         if: startsWith(matrix.os, 'ubuntu')
 
   test-parking_lot:
-    # The parking_lot crate has a feature called send_guard which changes when
-    # some of its types are Send. Tokio has some measures in place to prevent
-    # this from affecting when Tokio types are Send, and this test exists to
-    # ensure that those measures are working.
-    #
-    # This relies on the potentially affected Tokio type being listed in
-    # `tokio/tokio/tests/async_send_sync.rs`.
     name: compile tests with parking lot send guards
     needs: basics
     runs-on: blacksmith-4vcpu-ubuntu-2204
@@ -234,7 +209,6 @@ jobs:
             toolchain: ${{ env.rust_stable }}
 
       - name: Enable parking_lot send_guard feature
-        # Inserts the line "plsend = ["parking_lot/send_guard"]" right after [features]
         run: sed -i '/\[features\]/a plsend = ["parking_lot/send_guard"]' tokio/Cargo.toml
 
       - uses: useblacksmith/cache@v5
@@ -242,9 +216,6 @@ jobs:
         run: cargo check --workspace --all-features --tests
 
   test-tracing-instrumentation:
-    # These tests use the as-yet unpublished `tracing-mock` crate to test the
-    # tracing instrumentation present in Tokio. As such they are placed in
-    # their own test crate outside of the workspace.
     needs: basics
     name: test tokio instrumentation
     runs-on: blacksmith-4vcpu-ubuntu-2204
@@ -284,21 +255,17 @@ jobs:
         uses: taiki-e/install-action@valgrind
 
       - uses: useblacksmith/cache@v5
-      # Compile tests
       - name: cargo build test-mem
         run: cargo build --features rt-net --bin test-mem
         working-directory: tests-integration
 
-      # Run with valgrind
       - name: Run valgrind test-mem
         run: valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all --fair-sched=yes ./target/debug/test-mem
 
-      # Compile tests
       - name: cargo build test-process-signal
         run: cargo build --features rt-process-signal --bin test-process-signal
         working-directory: tests-integration
 
-      # Run with valgrind
       - name: Run valgrind test-process-signal
         run: valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all --fair-sched=yes ./target/debug/test-process-signal
 
@@ -325,7 +292,6 @@ jobs:
           tool: cargo-nextest
 
       - uses: useblacksmith/cache@v5
-      # Run `tokio` with "unstable" cfg flag.
       - name: test tokio full --cfg unstable
         run: |
           set -euxo pipefail
@@ -334,8 +300,6 @@ jobs:
         working-directory: tokio
         env:
           RUSTFLAGS: --cfg tokio_unstable -Dwarnings
-          # in order to run doctests for unstable features, we must also pass
-          # the unstable cfg to RustDoc
           RUSTDOCFLAGS: --cfg tokio_unstable
 
   test-unstable-taskdump:
@@ -359,7 +323,6 @@ jobs:
           tool: cargo-nextest
 
       - uses: useblacksmith/cache@v5
-      # Run `tokio` with "unstable" and "taskdump" cfg flags.
       - name: test tokio full --cfg unstable --cfg taskdump
         run: |
           set -euxo pipefail
@@ -368,8 +331,6 @@ jobs:
         working-directory: tokio
         env:
           RUSTFLAGS: --cfg tokio_unstable --cfg tokio_taskdump -Dwarnings
-          # in order to run doctests for unstable features, we must also pass
-          # the unstable cfg to RustDoc
           RUSTDOCFLAGS: --cfg tokio_unstable --cfg tokio_taskdump
 
   check-unstable-mt-counters:
@@ -391,7 +352,6 @@ jobs:
         with:
           tool: cargo-nextest
       - uses: useblacksmith/cache@v5
-      # Run `tokio` with "unstable" and "taskdump" cfg flags.
       - name: check tokio full --cfg unstable --cfg internal-mt-counters
         run: |
           set -euxo pipefail
@@ -400,8 +360,6 @@ jobs:
         working-directory: tokio
         env:
           RUSTFLAGS: --cfg tokio_unstable --cfg tokio_internal_mt_counters -Dwarnings
-          # in order to run doctests for unstable features, we must also pass
-          # the unstable cfg to RustDoc
           RUSTDOCFLAGS: --cfg tokio_unstable --cfg tokio_internal_mt_counters
 
   miri:
@@ -417,8 +375,6 @@ jobs:
           components: miri
       - uses: useblacksmith/cache@v5
       - name: miri
-        # Many of tests in tokio/tests and doctests use #[tokio::test] or
-        # #[tokio::main] that calls epoll_create1 that Miri does not support.
         run: |
           cargo miri test --features full --lib --no-fail-fast
         working-directory: tokio
@@ -432,7 +388,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install llvm
-        # Required to resolve symbols in sanitizer output
         run: sudo apt-get install -y llvm
       - name: Install Rust ${{ env.rust_nightly }}
         uses: dtolnay/rust-toolchain@stable
@@ -444,7 +399,6 @@ jobs:
         run: cargo test --workspace --all-features --target x86_64-unknown-linux-gnu --tests -- --test-threads 1 --nocapture
         env:
           RUSTFLAGS: -Z sanitizer=address --cfg tokio_no_tuning_tests
-          # Ignore `trybuild` errors as they are irrelevant and flaky on nightly
           TRYBUILD: overwrite
 
   semver:
@@ -484,5 +438,68 @@ jobs:
 
   cross-check-tier3:
     name: cross-check-tier3
+    needs: basics
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+    strategy:
+      matrix:
+        target:
+          - name: armv7-sony-vita-newlibeabihf
+            exclude_features: "process,signal,rt-process-signal,full"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust ${{ env.rust_nightly }}
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: ${{ env.rust_nightly }}
+          components: rust-src
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-hack
+      - uses: useblacksmith/cache@v5
+      - run: cargo hack check -Zbuild-std --workspace --each-feature --target ${{ matrix.target.name }} --exclude-features "${{ matrix.target.exclude_features }}"
+        env:
+          RUSTFLAGS: --cfg tokio_unstable -Dwarnings
+
+  cross-test-with-parking_lot:
+    needs: basics
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+    strategy:
+      matrix:
+        include:
+          - target: i686-unknown-linux-gnu
+            rustflags: --cfg tokio_taskdump
+          - target: armv5te-unknown-linux-gnueabi
+          - target: armv7-unknown-linux-gnueabihf
+          - target: aarch64-unknown-linux-gnu
+            rustflags: --cfg tokio_taskdump
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.rust_stable }}
+          target: ${{ matrix.target }}
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
+      - uses: taiki-e/setup-cross-toolchain-action@v1
+        with:
+          target: ${{ matrix.target }}
+
+      - uses: useblacksmith/cache@v5
+      - name: Tests run with all features (including parking_lot)
+        run: |
+          set -euxo pipefail
+          cargo nextest run -p tokio --all-features --target ${{ matrix.target }}
+          cargo test --doc -p tokio --all-features --target ${{ matrix.target }}
+        env:
+          RUST_TEST_THREADS: 1
+          RUSTFLAGS: --cfg tokio_unstable -Dwarnings --cfg tokio_no_tuning_tests ${{ matrix.rustflags }}
+
+  cross-test-without-parking_lot:
     needs: basics
     runs-on: blacksmith-4vcpu-ubuntu-22
