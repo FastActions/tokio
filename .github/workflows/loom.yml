@@ -100,7 +100,7 @@ jobs:
     name: loom ALT multi-thread scheduler
     # base_ref is null when it's not a pull request
     if: github.repository_owner == 'tokio-rs' && (contains(github.event.pull_request.labels.*.name, 'R-loom-multi-thread-alt') || (github.base_ref == null))
-    runs-on: blacksmith-4vcpu-ubuntu-2204
+    runs-on: blacksmith-32vcpu-ubuntu-2204
     strategy:
       matrix:
         include:
