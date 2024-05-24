@@ -510,7 +510,7 @@ jobs:
 
   cross-test-with-parking_lot:
     needs: basics
-    runs-on: blacksmith-32vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2204
     strategy:
       matrix:
         include:
@@ -744,7 +744,7 @@ jobs:
 
   clippy:
     name: clippy
-    runs-on: blacksmith-32vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust ${{ env.rust_clippy }}
