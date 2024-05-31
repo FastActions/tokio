@@ -470,7 +470,7 @@ impl Handle {
 
             traces = trace_current_thread(&self.shared.owned, local, &self.shared.inject)
                 .into_iter()
-                .map(dump::Task::new)
+                .map(|(id, trace)| dump::Task::new(id, trace))
                 .collect();
 
             // Avoid double borrow panic
@@ -502,7 +502,7 @@ impl Handle {
     }
 }
 
-cfg_metrics! {
+cfg_unstable_metrics! {
     impl Handle {
         pub(crate) fn scheduler_metrics(&self) -> &SchedulerMetrics {
             &self.shared.scheduler_metrics

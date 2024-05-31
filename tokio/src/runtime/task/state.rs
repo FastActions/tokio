@@ -2,7 +2,6 @@ use crate::loom::sync::atomic::AtomicUsize;
 
 use std::fmt;
 use std::sync::atomic::Ordering::{AcqRel, Acquire, Release};
-use std::usize;
 
 pub(super) struct State {
     val: AtomicUsize,
@@ -53,9 +52,9 @@ const REF_ONE: usize = 1 << REF_COUNT_SHIFT;
 ///
 /// A task is initialized with three references:
 ///
-///  * A reference that will be stored in an OwnedTasks or LocalOwnedTasks.
+///  * A reference that will be stored in an `OwnedTasks` or `LocalOwnedTasks`.
 ///  * A reference that will be sent to the scheduler as an ordinary notification.
-///  * A reference for the JoinHandle.
+///  * A reference for the `JoinHandle`.
 ///
 /// As the task starts with a `JoinHandle`, `JOIN_INTEREST` is set.
 /// As the task starts with a `Notified`, `NOTIFIED` is set.
@@ -141,7 +140,6 @@ impl State {
 
     /// Transitions the task from `Running` -> `Idle`.
     ///
-    /// Returns `true` if the transition to `Idle` is successful, `false` otherwise.
     /// The transition to `Idle` fails if the task has been flagged to be
     /// cancelled.
     pub(super) fn transition_to_idle(&self) -> TransitionToIdle {
