@@ -215,7 +215,7 @@ jobs:
       - name: Check benches
         run: cargo check --benches
         working-directory: benches
-        if: startsWith(matrix.os, 'ubuntu')
+        if: contains(matrix.os, 'ubuntu')
 
   test-parking_lot:
     # The parking_lot crate has a feature called send_guard which changes when
