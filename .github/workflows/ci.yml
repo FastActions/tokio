@@ -96,7 +96,7 @@ jobs:
       matrix:
         os:
           - blacksmith-4vcpu-windows-2025
-          - ubuntu-latest
+          - blacksmith-4vcpu-ubuntu-2404
           - macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -128,7 +128,7 @@ jobs:
       matrix:
         os:
           - blacksmith-4vcpu-windows-2025
-          - ubuntu-latest
+          - blacksmith-4vcpu-ubuntu-2404
           - macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -158,7 +158,7 @@ jobs:
       matrix:
         os:
           - blacksmith-4vcpu-windows-2025
-          - ubuntu-latest
+          - blacksmith-4vcpu-ubuntu-2404
           - macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -186,7 +186,7 @@ jobs:
       matrix:
         os:
           - blacksmith-4vcpu-windows-2025
-          - ubuntu-latest
+          - blacksmith-4vcpu-ubuntu-2404
           - macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -312,7 +312,7 @@ jobs:
       matrix:
         include:
           - os: blacksmith-4vcpu-windows-2025
-          - os: ubuntu-latest
+          - os: blacksmith-4vcpu-ubuntu-2404
           - os: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -815,7 +815,7 @@ jobs:
       matrix:
         os:
           - blacksmith-4vcpu-windows-2025
-          - ubuntu-latest
+          - blacksmith-4vcpu-ubuntu-2404
           - macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -976,7 +976,7 @@ jobs:
       matrix:
         os:
           - blacksmith-4vcpu-windows-2025
-          - ubuntu-latest
+          - blacksmith-4vcpu-ubuntu-2404
         rust:
           # `check-external-types` requires a specific Rust nightly version. See
           # the README for details: https://github.com/awslabs/cargo-check-external-types
